@@ -38,6 +38,24 @@
         alert(`Error: Could not load ${asset}`);
       };
     });
+
+    // Test shimeji display
+    console.log("Testing shimeji script...");
+     
+    const testShimeji = document.createElement("img");
+    testShimeji.src = "./walk1.png"; // Use one of your assets
+    testShimeji.style.position = "absolute";
+    testShimeji.style.left = "100px";
+    testShimeji.style.top = "100px";
+    testShimeji.style.zIndex = "1000";
+
+    document.body.appendChild(testShimeji);
+
+    if (testShimeji.complete) {
+      console.log("Test shimeji displayed!");
+    } else {
+      console.error("Failed to display test shimeji.");
+    }
   </script>
 </body>
 </html>
