@@ -1,23 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shimeji</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kamisato Ayaka Shimeji Debug</title>
 </head>
 <body>
-    <!-- Placeholder for the Shimeji -->
-    <script>
-        const imageFolder = './'; // Ensure this points to the correct folder for assets
-        const assetList = ['walk1.png', 'walk2.png', 'fall1.png', 'fall2.png', 'fall3.png']; // Add all filenames here
-        
-        // Testing if assets load
-        for (const asset of assetList) {
-            const img = new Image();
-            img.src = imageFolder + asset;
-            img.onerror = () => console.error(`Failed to load ${asset}`);
-            img.onload = () => console.log(`${asset} loaded successfully`);
-        }
-    </script>
+  <h1>Kamisato Ayaka Shimeji Debugging Mode</h1>
+  <p>If you're seeing this, the HTML has loaded correctly!</p>
+  
+  <script>
+    // Debugging messages
+    console.log("HTML is loaded!");
+    alert("HTML is loaded!");
+
+    // Ensure JavaScript runs
+    document.body.innerHTML += "<p>JavaScript is working!</p>";
+    console.log("JavaScript is working!");
+
+    // Debugging asset loading
+    const imageFolder = "./";
+    const assetList = ["walk1.png", "walk2.png", "stand1.png"]; // Add or modify based on your assets
+    console.log("Assets to load:", assetList);
+
+    assetList.forEach((asset) => {
+      const img = new Image();
+      img.src = imageFolder + asset;
+
+      img.onload = () => {
+        console.log(`Loaded: ${asset}`);
+        document.body.innerHTML += `<p>✅ Loaded ${asset}</p>`;
+      };
+
+      img.onerror = () => {
+        console.error(`❌ Failed to load: ${asset}`);
+        document.body.innerHTML += `<p>❌ Failed to load ${asset}</p>`;
+        alert(`Error: Could not load ${asset}`);
+      };
+    });
+  </script>
 </body>
 </html>
