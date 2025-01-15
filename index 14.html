@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shimeji Test</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling when the shimeji moves offscreen */
+            background-color: #f0f8ff;
+        }
+
+        #shimeji {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px; /* Adjust size */
+        }
+    </style>
+</head>
+<body>
+    <img id="shimeji" src="sit1.png" alt="Shimeji">
+    <script>
+        const shimeji = document.getElementById('shimeji');
+        let positionX = window.innerWidth / 2;
+        let positionY = window.innerHeight / 2;
+        let speed = 5; // Speed of movement
+        let direction = 1; // 1 for right, -1 for left
+
+        function moveShimeji() {
+            // Update position
+            positionX += speed * direction;
+
+            // Check boundaries
+            if (positionX + shimeji.width / 2 >= window.innerWidth || positionX - shimeji.width / 2 <= 0) {
+                direction *= -1; // Reverse direction
+                shimeji.style.transform = `scaleX(${direction})`; // Flip horizontally
+            }
+
+            // Update position and appearance
+            shimeji.style.left = `${positionX}px`;
+        }
+
+        // Start animation
+        setInterval(moveShimeji, 50);
+    </script>
+</body>
+</html>
