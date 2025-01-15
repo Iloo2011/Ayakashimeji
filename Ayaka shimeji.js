@@ -1,47 +1,54 @@
-// Variables used by Scriptable.
-const imageFolder = "./"; // Adjust this to match your setup
-const canvasSize = { width: 200, height: 200 }; // Adjust as needed
+// Variables
+const container = document.getElementById("shimeji-container");
+const notificationBox = document.getElementById("notifications");
+const canvas = document.createElement("canvas");
+const canvasSize = { width: 100, height: 100 };
+canvas.width = container.clientWidth;
+canvas.height = container.clientHeight;
+container.appendChild(canvas);
 
-// Animation frames (update these with your actual PNG filenames)
+const ctx = canvas.getContext("2d");
+const imageFolder = "./"; // Adjust this to your GitHub setup
 const animations = {
-  fall: ["fall1.png", "fall2.png", "fall3.png"], // Fall animation frames
-  walk: ["walk1.png", "walk2.png"], // Walking animation frames
-  sit: ["stand1.png"], // Sitting animation frames
+  sit: ["stand1.png"], // Sitting animation
+  walk: ["walk1.png", "walk2.png"], // Walking animation
 };
-
-// Helper to load images with improved debugging
-const loadImage = async (filename) => {
-  const img = new Image();
-  img.src = `${imageFolder}/${filename}`;
-  await img.decode();
-  return img;
-};
-
-// Preload all images
 const preloadedImages = {};
-(async () => {
-  for (const animation in animations) {
-    for (const frame of animations[animation]) {
-      preloadedImages[frame] = await loadImage(frame);
-    }
-  }
-})();
-
-// Initialize shimeji properties
-let position = { x: 100, y: 300 }; // Start position
-let direction = 1; // 1 = facing right, -1 = facing left
+let position = { x: 100, y: canvas.height - canvasSize.height }; // Start at bottom
+let direction = 1; // 1 = right, -1 = left
 let currentAnimation = animations.walk;
 let currentFrame = 0;
 let frameCounter = 0;
-const frameDelay = 15; // Controls animation speed
+const frameDelay = 20; // Controls speed
 
-// Update shimeji position and behavior
+// Helper: Load images
+const loadImage = async (filename) => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = `${imageFolder}/${filename}`;
+    img.onload = () => resolve(img);
+  });
+};
+
+// Preload images
+(async () => {
+  try {
+    for (const animation in animations) {
+      for (const frame of animations[animation]) {
+        preloadedImages[frame] = await loadImage(frame);
+      }
+    }
+    notificationBox.textContent = "Shimeji loaded successfully!";
+  } catch (err) {
+    notificationBox.textContent = "Failed to load shimeji assets!";
+  }
+})();
+
+// Update shimeji position
 const updatePosition = () => {
-  position.x += direction * 2; // Move shimeji (adjust speed here)
-
-  // Flip when reaching the edges of the screen
-  if (position.x < 0 || position.x > window.innerWidth - canvasSize.width) {
-    direction *= -1; // Reverse direction
+  position.x += direction * 2; // Adjust speed
+  if (position.x < 0 || position.x > canvas.width - canvasSize.width) {
+    direction *= -1; // Flip direction
   }
 
   // Update animation frame
@@ -53,30 +60,24 @@ const updatePosition = () => {
 };
 
 // Draw shimeji
-const draw = (ctx) => {
-  ctx.clearRect(0, 0, canvasSize.width, canvasSize.height); // Clear canvas
+const draw = () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
   const frame = currentAnimation[currentFrame];
-  const image = preloadedImages[frame];
+  const img = preloadedImages[frame];
 
   ctx.save();
   ctx.translate(position.x + canvasSize.width / 2, position.y);
-  ctx.scale(direction, 1); // Flip horizontally when direction is -1
-  ctx.drawImage(image, -canvasSize.width / 2, 0, canvasSize.width, canvasSize.height);
+  ctx.scale(direction, 1); // Flip image based on direction
+  ctx.drawImage(img, -canvasSize.width / 2, 0, canvasSize.width, canvasSize.height);
   ctx.restore();
 };
 
 // Main loop
-const canvas = document.createElement("canvas");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-document.body.appendChild(canvas);
-const ctx = canvas.getContext("2d");
-
 const mainLoop = () => {
   updatePosition();
-  draw(ctx);
+  draw();
   requestAnimationFrame(mainLoop);
 };
 
-// Start the main loop
-mainLoop();
+// Start loop after loading images
+setTimeout(() => mainLoop(), 1000);

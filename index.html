@@ -1,76 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shimeji Animation Debug</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden; /* Prevent scrolling when the shimeji moves offscreen */
-            background-color: #f0f8ff;
-        }
-
-        #shimeji {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 150px; /* Adjust size */
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kamisato Ayaka Shimeji</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #f3f4f6;
+    }
+    canvas {
+      display: block;
+    }
+    #notifications {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      color: #333;
+    }
+    #shimeji-container {
+      width: 80%;
+      height: 80%;
+      position: relative;
+      margin: 0 auto;
+      border: 2px dashed #aaa;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      background-color: #fff;
+      overflow: hidden;
+    }
+  </style>
 </head>
 <body>
-    <img id="shimeji" src="sit1.png" alt="Shimeji">
-    <script>
-        const shimeji = document.getElementById('shimeji');
-        let positionX = window.innerWidth / 2;
-        let speed = 5; // Speed of movement
-        let direction = 1; // Movement direction: 1 = right, -1 = left
-        let animationFrame = 0; // Tracks which sprite to display
-        const walkSprites = ['walk1.png', 'walk2.png']; // Walking frames
-        const sitSprite = 'sit1.png'; // Sitting frame
-
-        // Debugging messages
-        console.log('Starting Shimeji...');
-
-        function moveShimeji() {
-            positionX += speed * direction;
-
-            // Flip and boundary logic
-            if (positionX + shimeji.width / 2 >= window.innerWidth) {
-                direction = -1; // Reverse to left
-            } else if (positionX - shimeji.width / 2 <= 0) {
-                direction = 1; // Reverse to right
-            }
-
-            // Flip shimeji
-            shimeji.style.transform = `translate(-50%, -50%) scaleX(${direction})`;
-
-            // Update walking animation
-            animationFrame = (animationFrame + 1) % walkSprites.length;
-            shimeji.src = walkSprites[animationFrame];
-
-            // Debugging message
-            console.log(`Walking: ${shimeji.src} at X: ${positionX}, Direction: ${direction}`);
-
-            // Update position
-            shimeji.style.left = `${positionX}px`;
-        }
-
-        function idleShimeji() {
-            shimeji.src = sitSprite;
-            console.log('Shimeji is sitting.');
-        }
-
-        // Animation loop
-        setInterval(() => {
-            if (speed > 0) {
-                moveShimeji(); // Animate movement
-            } else {
-                idleShimeji(); // Idle
-            }
-        }, 500); // Slower timing for debugging
-    </script>
+  <div id="shimeji-container"></div>
+  <div id="notifications">Loading shimeji...</div>
+  <script src="Ayaka shimeji.js"></script>
 </body>
 </html>
