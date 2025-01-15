@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shimeji Test</title>
+    <title>Shimeji Animation Debug</title>
     <style>
         body {
             margin: 0;
@@ -25,26 +25,52 @@
     <script>
         const shimeji = document.getElementById('shimeji');
         let positionX = window.innerWidth / 2;
-        let positionY = window.innerHeight / 2;
         let speed = 5; // Speed of movement
-        let direction = 1; // 1 for right, -1 for left
+        let direction = 1; // Movement direction: 1 = right, -1 = left
+        let animationFrame = 0; // Tracks which sprite to display
+        const walkSprites = ['walk1.png', 'walk2.png']; // Walking frames
+        const sitSprite = 'sit1.png'; // Sitting frame
+
+        // Debugging messages
+        console.log('Starting Shimeji...');
 
         function moveShimeji() {
-            // Update position
             positionX += speed * direction;
 
-            // Check boundaries
-            if (positionX + shimeji.width / 2 >= window.innerWidth || positionX - shimeji.width / 2 <= 0) {
-                direction *= -1; // Reverse direction
-                shimeji.style.transform = `scaleX(${direction})`; // Flip horizontally
+            // Flip and boundary logic
+            if (positionX + shimeji.width / 2 >= window.innerWidth) {
+                direction = -1; // Reverse to left
+            } else if (positionX - shimeji.width / 2 <= 0) {
+                direction = 1; // Reverse to right
             }
 
-            // Update position and appearance
+            // Flip shimeji
+            shimeji.style.transform = `translate(-50%, -50%) scaleX(${direction})`;
+
+            // Update walking animation
+            animationFrame = (animationFrame + 1) % walkSprites.length;
+            shimeji.src = walkSprites[animationFrame];
+
+            // Debugging message
+            console.log(`Walking: ${shimeji.src} at X: ${positionX}, Direction: ${direction}`);
+
+            // Update position
             shimeji.style.left = `${positionX}px`;
         }
 
-        // Start animation
-        setInterval(moveShimeji, 50);
+        function idleShimeji() {
+            shimeji.src = sitSprite;
+            console.log('Shimeji is sitting.');
+        }
+
+        // Animation loop
+        setInterval(() => {
+            if (speed > 0) {
+                moveShimeji(); // Animate movement
+            } else {
+                idleShimeji(); // Idle
+            }
+        }, 500); // Slower timing for debugging
     </script>
 </body>
 </html>
