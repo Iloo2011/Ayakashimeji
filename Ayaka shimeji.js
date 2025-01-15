@@ -7,7 +7,7 @@ canvas.height = container.clientHeight;
 container.appendChild(canvas);
 
 const ctx = canvas.getContext("2d");
-const imageFolder = "./"; // Adjust this if the path to the images is different
+const imageFolder = "./"; // Ensure images are in the same folder as index.html
 let testImage;
 
 // Helper: Load a single test image

@@ -3,45 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kamisato Ayaka Shimeji</title>
+  <title>Shimeji Debugging</title>
   <style>
     body {
       margin: 0;
-      overflow: hidden;
-      background-color: #f3f4f6;
-    }
-    canvas {
-      display: block;
-    }
-    #notifications {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      padding: 10px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      color: #333;
+      padding: 0;
+      background-color: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
     #shimeji-container {
-      width: 80%;
-      height: 80%;
       position: relative;
-      margin: 0 auto;
-      border: 2px dashed #aaa;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      background-color: #fff;
+      width: 800px;
+      height: 600px;
+      background-color: #ddd;
       overflow: hidden;
+      border: 2px solid #333;
+    }
+    #notifications {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <div id="shimeji-container"></div>
-  <div id="notifications">Loading shimeji...</div>
-  <script src="Ayaka shimeji.js"></script>
+  <div id="shimeji-container">
+    <div id="notifications"></div>
+  </div>
+  <script src="./Ayaka shimeji.js"></script>
 </body>
 </html>
