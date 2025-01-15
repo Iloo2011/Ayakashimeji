@@ -3,114 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kamisato Ayaka Shimeji</title>
+    <title>Interactive Shimeji</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
             margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
+            overflow: hidden; /* Prevent scrollbars */
+            background-color: #f0f8ff;
         }
-        #shimejiCanvas {
+        canvas {
             display: block;
-            margin: 20px auto;
-            border: 1px solid #ccc;
-        }
-        #debug {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #333;
-        }
-        .success {
-            color: green;
-        }
-        .error {
-            color: red;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
     </style>
 </head>
 <body>
-    <h1>Kamisato Ayaka Shimeji</h1>
-    <canvas id="shimejiCanvas" width="800" height="600"></canvas>
-    <div id="debug"></div>
+    <canvas id="shimejiCanvas"></canvas>
 
     <script>
         const canvas = document.getElementById("shimejiCanvas");
         const ctx = canvas.getContext("2d");
-        const debugElement = document.getElementById("debug");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-        const assets = ["walk1.png", "walk2.png", "stand1.png"]; // Add your asset names here.
+        const assets = {
+            walk: ["walk1.png", "walk2.png"],
+            climb: ["climb1.png", "climb2.png"],
+            sit: ["sit1.png"], // Replacing idle with sit behavior
+        };
         const loadedImages = {};
-        let currentImageIndex = 0;
 
-        const shimejiState = {
-            x: 400, // Starting X position
-            y: 300, // Starting Y position
-            speed: 1, // Movement speed (reduced for slower movement)
-            direction: 1, // 1 for right, -1 for left
-            frameDelay: 10, // How many frames to wait before changing image
-            currentFrame: 0, // Keeps track of the current frame
+        let currentBehavior = "walk"; // Initial behavior
+        let frameIndex = 0;
+        let frameDelay = 10;
+        let frameCounter = 0;
+        let isDragging = false;
+
+        const shimeji = {
+            x: canvas.width / 2,
+            y: canvas.height - 100,
+            width: 50,
+            height: 50,
+            dx: 2, // Horizontal speed
+            dy: 0, // Vertical speed
+            direction: 1, // 1 = right, -1 = left
         };
 
-        function loadAssets(assets) {
-            let loadedCount = 0;
-
+        function loadAssets() {
             return new Promise((resolve, reject) => {
-                assets.forEach(asset => {
-                    const img = new Image();
-                    img.src = asset;
-                    img.onload = () => {
-                        loadedImages[asset] = img;
-                        debugElement.innerHTML += `<div class="success">✔️ Loaded ${asset}</div>`;
-                        loadedCount++;
-                        if (loadedCount === assets.length) resolve();
-                    };
-                    img.onerror = () => {
-                        debugElement.innerHTML += `<div class="error">❌ Failed to load ${asset}</div>`;
-                        reject(`Failed to load ${asset}`);
-                    };
+                let loadedCount = 0;
+                const totalAssets = Object.values(assets).flat().length;
+
+                Object.keys(assets).forEach((behavior) => {
+                    assets[behavior].forEach((file) => {
+                        const img = new Image();
+                        img.src = file;
+                        img.onload = () => {
+                            loadedImages[file] = img;
+                            loadedCount++;
+                            if (loadedCount === totalAssets) resolve();
+                        };
+                        img.onerror = () => reject(`Failed to load ${file}`);
+                    });
                 });
             });
         }
 
-        function renderShimeji() {
+        function drawShimeji() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Update Shimeji's position
-            shimejiState.x += shimejiState.speed * shimejiState.direction;
-
-            // Reverse direction when hitting canvas edges
-            if (shimejiState.x <= 0 || shimejiState.x >= canvas.width - 50) {
-                shimejiState.direction *= -1; // Reverse direction
-            }
-
-            // Only change the image every few frames
-            if (shimejiState.currentFrame >= shimejiState.frameDelay) {
-                shimejiState.currentFrame = 0; // Reset frame counter
-                currentImageIndex = (currentImageIndex + 1) % assets.length; // Cycle through images
-            } else {
-                shimejiState.currentFrame++; // Increment frame counter
-            }
-
-            const currentAsset = assets[currentImageIndex];
-            const img = loadedImages[currentAsset];
+            const behaviorFrames = assets[currentBehavior];
+            const img = loadedImages[behaviorFrames[frameIndex]];
 
             if (img) {
-                ctx.drawImage(img, shimejiState.x, shimejiState.y);
+                ctx.save();
+                if (shimeji.direction === -1) {
+                    ctx.scale(-1, 1);
+                    ctx.drawImage(img, -shimeji.x - shimeji.width, shimeji.y, shimeji.width, shimeji.height);
+                } else {
+                    ctx.drawImage(img, shimeji.x, shimeji.y, shimeji.width, shimeji.height);
+                }
+                ctx.restore();
             }
-
-            requestAnimationFrame(renderShimeji); // Smooth animation
         }
 
+        function updateShimeji() {
+            if (!isDragging) {
+                if (currentBehavior === "walk") {
+                    shimeji.x += shimeji.dx * shimeji.direction;
+
+                    // Reverse direction at edges
+                    if (shimeji.x <= 0 || shimeji.x + shimeji.width >= canvas.width) {
+                        shimeji.direction *= -1;
+                    }
+                } else if (currentBehavior === "climb") {
+                    shimeji.y -= 2;
+                    if (shimeji.y <= 0) {
+                        currentBehavior = "walk"; // Switch back to walking
+                    }
+                } else if (currentBehavior === "sit") {
+                    // Shimeji does nothing while sitting
+                }
+            }
+
+            // Randomly switch to sit behavior
+            if (Math.random() < 0.001) {
+                currentBehavior = "sit";
+                setTimeout(() => {
+                    currentBehavior = "walk";
+                }, 3000); // Sit for 3 seconds
+            }
+
+            // Frame switching
+            frameCounter++;
+            if (frameCounter >= frameDelay) {
+                frameCounter = 0;
+                frameIndex = (frameIndex + 1) % assets[currentBehavior].length;
+            }
+
+            drawShimeji();
+            requestAnimationFrame(updateShimeji);
+        }
+
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            if (
+                mouseX >= shimeji.x &&
+                mouseX <= shimeji.x + shimeji.width &&
+                mouseY >= shimeji.y &&
+                mouseY <= shimeji.y + shimeji.height
+            ) {
+                isDragging = true;
+            }
+        }
+
+        function handleMouseMove(e) {
+            if (isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                shimeji.x = e.clientX - rect.left - shimeji.width / 2;
+                shimeji.y = e.clientY - rect.top - shimeji.height / 2;
+            }
+        }
+
+        function handleMouseUp() {
+            isDragging = false;
+        }
+
+        window.addEventListener("mousedown", handleMouseDown);
+        window.addEventListener("mousemove", handleMouseMove);
+        window.addEventListener("mouseup", handleMouseUp);
+
         (async function init() {
-            debugElement.textContent = "Loading assets...";
             try {
-                await loadAssets(assets);
-                debugElement.innerHTML += "<div class='success'>✅ All assets loaded successfully!</div>";
-                renderShimeji();
+                await loadAssets();
+                updateShimeji();
             } catch (error) {
-                debugElement.innerHTML += `<div class="error">❌ Error: ${error}</div>`;
+                console.error(error);
             }
         })();
     </script>
