@@ -8,13 +8,13 @@ canvas.height = container.clientHeight;
 container.appendChild(canvas);
 
 const ctx = canvas.getContext("2d");
-const imageFolder = "./"; // Adjust this to your GitHub setup
+const imageFolder = "./"; // Adjust this if the path to the images is different
 const animations = {
   sit: ["stand1.png"], // Sitting animation
   walk: ["walk1.png", "walk2.png"], // Walking animation
 };
 const preloadedImages = {};
-let position = { x: 100, y: canvas.height - canvasSize.height }; // Start at bottom
+let position = { x: 100, y: canvas.height - canvasSize.height }; // Start near the bottom
 let direction = 1; // 1 = right, -1 = left
 let currentAnimation = animations.walk;
 let currentFrame = 0;
@@ -23,24 +23,28 @@ const frameDelay = 20; // Controls speed
 
 // Helper: Load images
 const loadImage = async (filename) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     img.src = `${imageFolder}/${filename}`;
     img.onload = () => resolve(img);
+    img.onerror = () => reject(`Failed to load ${filename}`);
   });
 };
 
 // Preload images
 (async () => {
   try {
+    notificationBox.textContent = "Preloading images...";
     for (const animation in animations) {
       for (const frame of animations[animation]) {
         preloadedImages[frame] = await loadImage(frame);
+        notificationBox.textContent += `\nLoaded ${frame}`;
       }
     }
-    notificationBox.textContent = "Shimeji loaded successfully!";
+    notificationBox.textContent += "\nShimeji loaded successfully!";
+    setTimeout(() => notificationBox.textContent = "", 3000); // Hide notifications
   } catch (err) {
-    notificationBox.textContent = "Failed to load shimeji assets!";
+    notificationBox.textContent = `Error: ${err}`;
   }
 })();
 
@@ -65,11 +69,16 @@ const draw = () => {
   const frame = currentAnimation[currentFrame];
   const img = preloadedImages[frame];
 
-  ctx.save();
-  ctx.translate(position.x + canvasSize.width / 2, position.y);
-  ctx.scale(direction, 1); // Flip image based on direction
-  ctx.drawImage(img, -canvasSize.width / 2, 0, canvasSize.width, canvasSize.height);
-  ctx.restore();
+  if (img) {
+    ctx.save();
+    ctx.translate(position.x + canvasSize.width / 2, position.y);
+    ctx.scale(direction, 1); // Flip image based on direction
+    ctx.drawImage(img, -canvasSize.width / 2, 0, canvasSize.width, canvasSize.height);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = "red";
+    ctx.fillText(`Missing frame: ${frame}`, position.x, position.y - 10);
+  }
 };
 
 // Main loop
