@@ -10,34 +10,30 @@
             text-align: center;
             margin: 0;
             padding: 0;
+            background-color: #f9f9f9;
         }
-
-        canvas {
+        #shimejiCanvas {
             display: block;
-            margin: 0 auto;
-            background: white;
+            margin: 20px auto;
             border: 1px solid #ccc;
         }
-
-        .debug-message {
-            margin-top: 20px;
+        #debug {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #333;
         }
-
         .success {
             color: green;
-            font-weight: bold;
         }
-
         .error {
             color: red;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <h1>Kamisato Ayaka Shimeji</h1>
     <canvas id="shimejiCanvas" width="800" height="600"></canvas>
-    <div id="debug" class="debug-message"></div>
+    <div id="debug"></div>
 
     <script>
         const canvas = document.getElementById("shimejiCanvas");
@@ -51,8 +47,10 @@
         const shimejiState = {
             x: 400, // Starting X position
             y: 300, // Starting Y position
-            speed: 2, // Movement speed
+            speed: 1, // Movement speed (reduced for slower movement)
             direction: 1, // 1 for right, -1 for left
+            frameDelay: 10, // How many frames to wait before changing image
+            currentFrame: 0, // Keeps track of the current frame
         };
 
         function loadAssets(assets) {
@@ -87,15 +85,20 @@
                 shimejiState.direction *= -1; // Reverse direction
             }
 
+            // Only change the image every few frames
+            if (shimejiState.currentFrame >= shimejiState.frameDelay) {
+                shimejiState.currentFrame = 0; // Reset frame counter
+                currentImageIndex = (currentImageIndex + 1) % assets.length; // Cycle through images
+            } else {
+                shimejiState.currentFrame++; // Increment frame counter
+            }
+
             const currentAsset = assets[currentImageIndex];
             const img = loadedImages[currentAsset];
 
             if (img) {
                 ctx.drawImage(img, shimejiState.x, shimejiState.y);
             }
-
-            // Cycle through assets for animation
-            currentImageIndex = (currentImageIndex + 1) % assets.length;
 
             requestAnimationFrame(renderShimeji); // Smooth animation
         }
