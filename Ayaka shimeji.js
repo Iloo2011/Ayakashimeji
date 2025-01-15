@@ -8,34 +8,72 @@ container.appendChild(canvas);
 
 const ctx = canvas.getContext("2d");
 const imageFolder = "./"; // Ensure images are in the same folder as index.html
-let testImage;
+let walkImages = [];
+let currentFrame = 0;
+let direction = 1; // 1 for right, -1 for left
+let xPosition = 100; // Starting X position
+let yPosition = 200; // Fixed Y position
 
-// Helper: Load a single test image
-const loadTestImage = async () => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.src = `${imageFolder}walk1.png`; // Replace with any valid image name
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(`Failed to load walk1.png`);
-  });
+// Helper: Load walk images
+const loadWalkImages = async () => {
+  const frameNames = ["walk1.png", "walk2.png"];
+  const promises = frameNames.map(
+    (frame) =>
+      new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = `${imageFolder}${frame}`;
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(`Failed to load ${frame}`);
+      })
+  );
+  return Promise.all(promises);
 };
 
-// Preload and Test
+// Preload and Start Animation
 (async () => {
   try {
-    notificationBox.textContent = "Loading test image...";
-    testImage = await loadTestImage();
-    notificationBox.textContent = "Test image loaded successfully!";
+    notificationBox.textContent = "Loading walk animation frames...";
+    walkImages = await loadWalkImages();
+    notificationBox.textContent = "Walk animation loaded successfully!";
     setTimeout(() => notificationBox.textContent = "", 3000);
-    drawTestImage();
+    animate();
   } catch (err) {
     notificationBox.textContent = `Error: ${err}`;
     console.error(err);
   }
 })();
 
-// Draw test image at a fixed position
-const drawTestImage = () => {
+// Animation Logic
+const animate = () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
-  ctx.drawImage(testImage, 100, 100, 100, 100); // Draw test image at fixed position
+
+  // Flip the context if walking left
+  ctx.save();
+  if (direction === -1) {
+    ctx.scale(-1, 1);
+    ctx.drawImage(
+      walkImages[currentFrame],
+      -xPosition - 100, // Flip x-position
+      yPosition,
+      100,
+      100
+    );
+  } else {
+    ctx.drawImage(walkImages[currentFrame], xPosition, yPosition, 100, 100);
+  }
+  ctx.restore();
+
+  // Update position
+  xPosition += direction * 2; // Adjust speed (currently 2px per frame)
+
+  // Reverse direction if hitting edges
+  if (xPosition <= 0 || xPosition >= canvas.width - 100) {
+    direction *= -1;
+  }
+
+  // Update frame
+  currentFrame = (currentFrame + 1) % walkImages.length;
+
+  // Loop animation
+  requestAnimationFrame(animate);
 };
