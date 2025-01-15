@@ -18,7 +18,7 @@ let lastFrameTime = 0;
 
 // Helper: Load walk images
 const loadWalkImages = async () => {
-  const frameNames = ["walk1.png", "walk2.png"];
+  const frameNames = ["walk1.png", "walk2.png"]; // Make sure these filenames match your assets
   const promises = frameNames.map(
     (frame) =>
       new Promise((resolve, reject) => {
@@ -60,10 +60,11 @@ const animate = (timestamp) => {
   // Flip the context if walking left
   ctx.save();
   if (direction === -1) {
-    ctx.scale(-1, 1);
+    ctx.translate(canvas.width, 0); // Translate to canvas width
+    ctx.scale(-1, 1); // Flip horizontally
     ctx.drawImage(
       walkImages[currentFrame],
-      -xPosition - 100, // Flip x-position
+      canvas.width - xPosition - 100,
       yPosition,
       100,
       100
