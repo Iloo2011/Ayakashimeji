@@ -13,6 +13,8 @@ let currentFrame = 0;
 let direction = 1; // 1 for right, -1 for left
 let xPosition = 100; // Starting X position
 let yPosition = 200; // Fixed Y position
+const frameInterval = 200; // Time per frame in ms
+let lastFrameTime = 0;
 
 // Helper: Load walk images
 const loadWalkImages = async () => {
@@ -34,9 +36,9 @@ const loadWalkImages = async () => {
   try {
     notificationBox.textContent = "Loading walk animation frames...";
     walkImages = await loadWalkImages();
-    notificationBox.textContent = "Walk animation loaded successfully!";
-    setTimeout(() => notificationBox.textContent = "", 3000);
-    animate();
+    notificationBox.textContent = "Shimeji loaded successfully!";
+    setTimeout(() => (notificationBox.textContent = ""), 3000);
+    requestAnimationFrame(animate);
   } catch (err) {
     notificationBox.textContent = `Error: ${err}`;
     console.error(err);
@@ -44,7 +46,15 @@ const loadWalkImages = async () => {
 })();
 
 // Animation Logic
-const animate = () => {
+const animate = (timestamp) => {
+  if (!lastFrameTime) lastFrameTime = timestamp;
+
+  // Update frame if enough time has passed
+  if (timestamp - lastFrameTime > frameInterval) {
+    currentFrame = (currentFrame + 1) % walkImages.length;
+    lastFrameTime = timestamp;
+  }
+
   ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
 
   // Flip the context if walking left
@@ -71,9 +81,6 @@ const animate = () => {
     direction *= -1;
   }
 
-  // Update frame
-  currentFrame = (currentFrame + 1) % walkImages.length;
-
-  // Loop animation
+  // Request next animation frame
   requestAnimationFrame(animate);
 };
