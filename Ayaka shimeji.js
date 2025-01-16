@@ -1,87 +1,110 @@
-// Variables
-const container = document.getElementById("shimeji-container");
-const notificationBox = document.getElementById("notifications");
-const canvas = document.createElement("canvas");
-canvas.width = container.clientWidth;
-canvas.height = container.clientHeight;
-container.appendChild(canvas);
+// Set up canvas
+const canvas = document.getElementById('shimeji-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-const ctx = canvas.getContext("2d");
-const imageFolder = "./"; // Ensure images are in the same folder as index.html
-let walkImages = [];
-let currentFrame = 0;
-let direction = 1; // 1 for right, -1 for left
-let xPosition = 100; // Starting X position
-let yPosition = 200; // Fixed Y position
-const frameInterval = 200; // Time per frame in ms
-let lastFrameTime = 0;
-
-// Helper: Load walk images
-const loadWalkImages = async () => {
-  const frameNames = ["walk1.png", "walk2.png"]; // Make sure these filenames match your assets
-  const promises = frameNames.map(
-    (frame) =>
-      new Promise((resolve, reject) => {
-        const img = new Image();
-        img.src = `${imageFolder}${frame}`;
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(`Failed to load ${frame}`);
-      })
-  );
-  return Promise.all(promises);
+// Helper to log errors to the screen
+console.error = (msg) => {
+    const log = document.createElement('div');
+    log.style.position = 'fixed';
+    log.style.bottom = '0';
+    log.style.left = '0';
+    log.style.backgroundColor = 'red';
+    log.style.color = 'white';
+    log.style.padding = '10px';
+    log.style.zIndex = '10000';
+    log.innerText = `Error: ${msg}`;
+    document.body.appendChild(log);
 };
 
-// Preload and Start Animation
-(async () => {
-  try {
-    notificationBox.textContent = "Loading walk animation frames...";
-    walkImages = await loadWalkImages();
-    notificationBox.textContent = "Shimeji loaded successfully!";
-    setTimeout(() => (notificationBox.textContent = ""), 3000);
-    requestAnimationFrame(animate);
-  } catch (err) {
-    notificationBox.textContent = `Error: ${err}`;
-    console.error(err);
-  }
-})();
+// Debug logs
+function loadImage(src) {
+    console.log(`Loading image: ${src}`);
+    const img = new Image();
+    img.src = src;
+    img.onload = () => console.log(`Successfully loaded: ${src}`);
+    img.onerror = () => console.error(`Error loading: ${src}`);
+    return img;
+}
 
-// Animation Logic
-const animate = (timestamp) => {
-  if (!lastFrameTime) lastFrameTime = timestamp;
+// Shimeji assets folder path
+const assetsFolder = './KamisatoAyakaAssets/';
 
-  // Update frame if enough time has passed
-  if (timestamp - lastFrameTime > frameInterval) {
-    currentFrame = (currentFrame + 1) % walkImages.length;
-    lastFrameTime = timestamp;
-  }
+// Shimeji animations
+const animations = {
+    walk: [loadImage(`${assetsFolder}walk1.png`), loadImage(`${assetsFolder}walk2.png`)],
+    sit: [loadImage(`${assetsFolder}sit1.png`)],
+};
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+// Shimeji object
+const shimeji = {
+    x: canvas.width / 2,
+    y: canvas.height - 100,
+    width: 64,
+    height: 64,
+    speed: 2,
+    frame: 0,
+    direction: 1, // 1: right, -1: left
+    action: 'walk',
+    animationTimer: 0,
+    animationSpeed: 10, // Lower value = faster animation
+};
 
-  // Flip the context if walking left
-  ctx.save();
-  if (direction === -1) {
-    ctx.translate(canvas.width, 0); // Translate to canvas width
-    ctx.scale(-1, 1); // Flip horizontally
-    ctx.drawImage(
-      walkImages[currentFrame],
-      canvas.width - xPosition - 100,
-      yPosition,
-      100,
-      100
-    );
-  } else {
-    ctx.drawImage(walkImages[currentFrame], xPosition, yPosition, 100, 100);
-  }
-  ctx.restore();
+// Draw the shimeji
+function drawShimeji() {
+    const frames = animations[shimeji.action];
+    if (!frames || frames.length === 0) {
+        console.error(`Animation not found: ${shimeji.action}`);
+        return;
+    }
+    const frame = frames[shimeji.frame];
+    if (!frame) {
+        console.error(`Frame not found for animation: ${shimeji.action}, frame: ${shimeji.frame}`);
+        return;
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(shimeji.x, shimeji.y);
+    ctx.scale(shimeji.direction, 1); // Flip based on direction
+    ctx.drawImage(frame, -shimeji.width / 2, -shimeji.height / 2, shimeji.width, shimeji.height);
+    ctx.restore();
+}
 
-  // Update position
-  xPosition += direction * 2; // Adjust speed (currently 2px per frame)
+// Update the shimeji's position and animation
+function updateShimeji() {
+    shimeji.animationTimer++;
+    if (shimeji.animationTimer >= shimeji.animationSpeed) {
+        shimeji.frame = (shimeji.frame + 1) % animations[shimeji.action].length;
+        shimeji.animationTimer = 0;
+    }
 
-  // Reverse direction if hitting edges
-  if (xPosition <= 0 || xPosition >= canvas.width - 100) {
-    direction *= -1;
-  }
+    shimeji.x += shimeji.speed * shimeji.direction;
+    if (shimeji.x <= 0 || shimeji.x >= canvas.width) {
+        shimeji.direction *= -1; // Flip direction at screen edges
+    }
+}
 
-  // Request next animation frame
-  requestAnimationFrame(animate);
+// Animation loop
+function loop() {
+    updateShimeji();
+    drawShimeji();
+    requestAnimationFrame(loop);
+}
+
+// Initialize
+window.onload = () => {
+    console.log('Initializing shimeji...');
+    if (!animations.walk || animations.walk.length === 0) {
+        console.error('Walk animation frames are missing!');
+    } else {
+        console.log('Walk animation loaded successfully.');
+    }
+    if (!animations.sit || animations.sit.length === 0) {
+        console.error('Sit animation frames are missing!');
+    } else {
+        console.log('Sit animation loaded successfully.');
+    }
+
+    loop();
 };
