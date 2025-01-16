@@ -3,40 +3,93 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shimeji Debugging</title>
+  <title>Kamisato Ayaka Shimeji</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
-      background-color: #f9f9f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    #shimeji-container {
-      position: relative;
-      width: 800px;
-      height: 600px;
-      background-color: #ddd;
       overflow: hidden;
-      border: 2px solid #333;
     }
-    #notifications {
+    canvas {
       position: absolute;
-      bottom: 0;
+      top: 0;
       left: 0;
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.8);
-      color: #fff;
-      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <div id="shimeji-container">
-    <div id="notifications"></div>
-  </div>
-  <script src="./Ayaka shimeji.js"></script>
+  <canvas id="shimejiCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById('shimejiCanvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Shimeji properties
+    const walkImages = [];
+    const frameInterval = 150; // Frame duration in milliseconds
+    let currentFrame = 0;
+    let lastFrameTime = 0;
+    let xPosition = canvas.width / 2;
+    let yPosition = canvas.height - 120; // Starting Y position
+    let direction = 1; // 1 = right, -1 = left
+
+    // Preload images
+    const preloadImages = (paths) => {
+      return Promise.all(paths.map((path) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = path;
+        });
+      }));
+    };
+
+    // Load Shimeji walking assets
+    preloadImages([
+      './KamisatoAyakaAssets/walk1.png',
+      './KamisatoAyakaAssets/walk2.png'
+    ]).then((images) => {
+      walkImages.push(...images);
+      console.log('Shimeji assets loaded successfully!');
+      requestAnimationFrame(animate); // Start animation loop
+    }).catch((error) => {
+      console.error('Error loading images:', error);
+    });
+
+    const animate = (timestamp) => {
+      if (!lastFrameTime) lastFrameTime = timestamp;
+
+      // Update frame if enough time has passed
+      if (timestamp - lastFrameTime > frameInterval) {
+        currentFrame = (currentFrame + 1) % walkImages.length;
+        lastFrameTime = timestamp;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+
+      ctx.save(); // Save the context state
+      if (direction === -1) {
+        ctx.translate(xPosition + 100, yPosition); // Move to the Shimeji's position
+        ctx.scale(-1, 1); // Flip horizontally
+        ctx.drawImage(walkImages[currentFrame], -100, 0, 100, 100); // Draw flipped
+      } else {
+        ctx.drawImage(walkImages[currentFrame], xPosition, yPosition, 100, 100);
+      }
+      ctx.restore(); // Restore the context state
+
+      // Update position
+      xPosition += direction * 2; // Adjust speed
+
+      // Reverse direction if hitting edges
+      if (xPosition <= 0 || xPosition >= canvas.width - 100) {
+        direction *= -1;
+      }
+
+      // Request next animation frame
+      requestAnimationFrame(animate);
+    };
+  </script>
 </body>
 </html>
